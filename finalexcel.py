@@ -10,7 +10,8 @@ print("Found Excel Files :",files)
 for file in files:
     print("Current open excel file :",file)
     df = pd.read_excel(file)
-    print("Column names : ",df.columns.values)
+    #print("Column names : ",df.columns.values)
+    print ([list((i, df.columns.values[i])) for i in range(len(df.columns.values))])
     a = str(input('Enter delete column num: '))
   
     a = a.split(",")
