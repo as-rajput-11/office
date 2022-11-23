@@ -39,3 +39,5 @@ while 1:
     line_fft.set_ydata(np.abs(np.fft.fft(dataInt))*2/(11000*CHUNK))
     fig.canvas.draw()
     fig.canvas.flush_events()
+
+https://dev.to/raquelsartwork/how-i-used-localstorage-and-event-delegation-in-a-list-of-items-1h52
