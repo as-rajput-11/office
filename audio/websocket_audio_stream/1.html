@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<style>
+
+    button {
+    background-color: #e4effe; /* Green */
+    border: none;
+    color: rgb(11, 10, 10);
+    padding: 16px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    transition-duration: 0.4s;
+    cursor: pointer;
+    }
+
+
+    .button5:hover {
+    background-color: #555555;
+    color: rgb(252, 248, 248);
+    }
+
+
+    div {
+      height: 200px;
+      width: 50%;
+      border-style: solid;
+    }
+    </style>
+<body>
+    <button class="button5" onclick="send()">start</button>
+    <button class="button5" onclick="stop()">stop</button>
+    <button class="button5"onclick="clr()">clear</button>
+    <!-- <textarea class = center id="msg"></textarea> -->
+    <div  id="msg"></div>
+</body>
+<script>
+    var mr, ws
+    function send() {
+        navigator.mediaDevices.getUserMedia({
+            audio: true
+        }).then(s => {
+            mr = new MediaRecorder(s)
+            ws = new WebSocket("ws://localhost:8865/")
+            ws.onmessage = d => {
+                document.getElementById('msg').append(d.data + " ")
+                ws.close()
+            }
+            mr.start()
+            mr.ondataavailable = e => {
+                console.log(e)
+                ws.send(e.data)
+            }
+        })
+    }
+    function stop() {
+        mr && mr.state == 'recording' && mr.stop()
+    }
+    function clr() {
+        document.getElementById('msg').innerText = ''
+    }
+</script>
+
+</html>
