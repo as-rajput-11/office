@@ -1,0 +1,27 @@
+body {
+    background: rgb(121, 167, 207);
+    color: white;
+    margin-top: 4rem;
+    font-family: 'Rajdhani', 'Abel', Arial, sans-serif;
+}
+
+button {
+    width: 100px;
+}
+
+label {
+    font-size: 18px;
+}
+
+.font-bungee {
+    font-family: 'Bungee', cursive !important;
+}
+
+.headers {
+    padding: 0rem 0.25rem;
+    border-radius: 0.5rem;
+}
+
+#messages {
+    height: 250px;
+}
