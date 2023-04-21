@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<style>
+  table, th, td {
+    border: 1px solid black;
+    border-collapse: collapse;
+  }
+  </style>
+<body>
+    <table class="table" id ="kuch" style="width:100%">
+        <thead>
+          <tr>
+            <th scope="col">id_no</th>
+            <th scope="col">date</th>
+            <th scope="col">in_time</th>
+            <th scope="col">out_time</th>
+          </tr>
+        </thead>
+        <tbody>
+
+          {% for show in datas %}
+          <!-- {{ show }} -->
+          <tr>
+          <td>{{show.id}}</td>
+          <td>{{show.date}}
+          </td>
+          <td>{{show.min}}
+          </td>
+          <td>{{show.max}}
+          </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table> 
+</body>
+</html>
