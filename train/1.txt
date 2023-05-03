@@ -1,1 +1,17 @@
 readme
+select a.train_id,a.entraning_station, a.destination_station,a.start_time,a.nominal_odc,a.onward_speed,a.o_day,b.distance,interval '1 hour' * (b.distance::float/a.onward_speed ) as travel_time     
+,a.start_time+ interval '1 hour' * (b.distance::float/a.onward_speed ) as arrival_day,a.start_time+ interval '10 hour' * (b.distance::float/a.onward_speed ) as marshalling_time_loading
+from master a inner join distance_station b on a.entraning_station = b.f_station and a.destination_station = b.d_station 
+
+
+
+
+
+-- DATEDIFF(DAY, '2017/08/25', '2011/08/25') AS DateDiff;
+-- b.distance::float/a.onward_speed as travel_time  
+
+--select interval '1 hour' * 5.77
+-- select '25-10-2021T13:45:50'::timestamp + interval '1 hour' * 5.77
+-- ,a.distance/a.onward_speed as travel_time
+-- select * from ditance_station
+-- ALTER TABLE master DROP COLUMN distance;
