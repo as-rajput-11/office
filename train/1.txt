@@ -15,3 +15,42 @@ from master a inner join distance_station b on a.entraning_station = b.f_station
 -- ,a.distance/a.onward_speed as travel_time
 -- select * from ditance_station
 -- ALTER TABLE master DROP COLUMN distance;
+
+#########################################################################
+
+
+
+import psycopg2
+import datetime
+ 
+# Connect to the database
+conn = psycopg2.connect(
+    database="postgres",
+    user='postgres',
+    password='postgres',
+    host='localhost',
+    port='5432'
+)
+ 
+cur = conn.cursor()
+cur.execute("select ids from (select array_agg(train_id) as ids, d_capacity from train_rpt group by detraining_station, d_capacity) a where array_length(ids, 1) - d_capacity > 0")
+# cur.execute(" WITH a AS (SELECT r_trains.trains,r_trains.r_count FROM r_trains), b AS (SELECT train_rpt.train_id,train_rpt.nominal_odc,train_rpt.type,train_rpt.entraning_station,train_rpt.start_time,train_rpt.detraining_station,train_rpt.consignment,train_rpt.speed,train_rpt.d_capacity,train_rpt.priority,train_rpt.distance,train_rpt.arrival_time,train_rpt.travel_time FROM train_rpt) SELECT b.train_id, b.nominal_odc,   b.type, b.entraning_station,  b.start_time,b.detraining_station,b.consignment, b.speed,b.d_capacity,b.priority, b.distance,b.arrival_time,b.travel_time,a.trains, a.r_count FROM b,a WHERE b.train_id = ANY (a.trains) ORDER BY b.train_id;")
+rows = cur.fetchall()
+
+for r in rows:
+    cur.execute('select train_id,arrival_time  from train_rpt where train_id in (' + ','.join(map(str, r[0])) + ') order by arrival_time')
+    data = cur.fetchall()
+    print(data[0])
+
+    
+
+
+   
+
+
+
+
+    # print(r)
+    
+cur.close()
+conn.close()
