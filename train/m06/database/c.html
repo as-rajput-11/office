@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Tiled WMS</title>
+    <script src="static/ol.js"></script>
+    <link rel="stylesheet" href="static/ol.css">
+    <script src="static/jquery.min.js"></script>
+    <link rel="stylesheet" href="static/bootstrap.min.css">
+    <style>
+      .ol-popup {
+          position: absolute;
+          background-color: white;
+          box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+          padding: 10px;
+          border-radius: 10px;
+          border: 1px solid #cccccc;
+          bottom: 12px;
+          left: -50px;
+          min-width: 100px;
+      }
+
+      .ol-popup:after,.ol-popup:before {
+          top: 100%;
+          border: solid transparent;
+          content: " ";
+          height: 0;
+          width: 0;
+          position: absolute;
+          pointer-events: none;
+      }
+      .ol-popup:after {
+          border-top-color: white;
+          border-width: 10px;
+          left: 48px;
+          margin-left: -10px;
+      }
+
+      .ol-popup:before {
+          border-top-color: #cccccc;
+          border-width: 11px;
+          left: 48px;
+          margin-left: -11px;
+      }
+      .ol-popup-closer {
+          text-decoration: none;
+          position: absolute;
+          top: 2px;
+          right: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <br>
+      {% include 'base.html' %}
+    <br>
+    <div id="map" class="map"></div>
+    <div id="popup" class="ol-popup">
+      <a href="#" id="popup-closer" class="ol-popup-closer"></a>
+      <div id="popup-content"></div>
+  </div>
+    <script>
+        const container = document.getElementById('popup');
+        const content = document.getElementById('popup-content');
+        const closer = document.getElementById('popup-closer');
+        const overlay = new ol.Overlay({
+            element: container
+        });
+
+        closer.onclick = function () {
+            overlay.setPosition(undefined);
+            closer.blur();
+            return false;
+        };  
+            
+      var map = new ol.Map({
+        layers: [
+            new ol.layer.Tile({
+              source: new ol.source.OSM()
+            }),
+            new ol.layer.Vector({
+              source: new ol.source.Vector({
+                url: '/static/test.geojson',
+                format: new ol.format.GeoJSON()
+              })
+            })
+          ],
+        overlays: [overlay],
+        target: 'map',
+        view: new ol.View({
+          center: [82.77112,22.73558],
+          projection: 'EPSG:4326',
+          zoom: 4
+        })
+        })
+        var feature_onHover;
+        map.on('pointermove', function(evt) {
+
+        feature_onHover = map.forEachFeatureAtPixel(evt.pixel, function(feature, layers) {
+            console.log(feature);
+            return feature;
+          });
+
+      if (feature_onHover) {
+        var content = document.getElementById('popup-content');
+        console.log(feature_onHover.getProperties().id);
+        overlay.setPosition(evt.coordinate);
+
+        
+        incoming_station = ' - ';
+        // if(feature_onHover.getProperties().ENTRAINING_STATION != null){
+          incoming_station = (feature_onHover.getProperties().ENTRAINING_STATION);
+        // }
+        incoming_station_ids = ' - ';
+        // if(feature_onHover.getProperties().ENTRAINING_IDS != null){
+          incoming_station_ids = (feature_onHover.getProperties().ENTRAINING_IDS);
+        // }
+        outgoing_station = ' - ';
+        // if(feature_onHover.getProperties().DETRAINING_STATION != null){
+          outgoing_station = (feature_onHover.getProperties().DETRAINING_STATION);
+        // }
+        outgoing_station_ids = ' - ';
+        // if(feature_onHover.getProperties().DETRAINING_IDS != null){
+          outgoing_station_ids = (feature_onHover.getProperties().DETRAINING_IDS);
+        // }
+         content.innerHTML = 'ID: ' + feature_onHover.getProperties().id +
+         "<br> Station: " + feature_onHover.getProperties().STATION +
+         "<br> Incoming Station: " + incoming_station +
+         "<br> Incoming Station ID: " + incoming_station_ids +
+         "<br> Outgoing Station: " + outgoing_station +
+         "<br> Outgoing Station ID: " + outgoing_station_ids ;
+          // + '<br> Left: ' +  feature_onHover.getProperties().left 
+          // + '<br> Right: ' +  feature_onHover.getProperties().right
+          // + '<br> Bottom: ' +  feature_onHover.getProperties().bottom
+          // + '<br> Name: ' +  feature_onHover.getProperties().Name
+          // + '<br> No: ' +  feature_onHover.getProperties().No
+        //   + '<br> Code: ' +  feature_onHover.getProperties().Code;
+      
+         container.style.display = 'block';
+      } else {
+         container.style.display = 'none';
+      }
+    });
+    </script>
+  </body>
+</html>
