@@ -1,0 +1,22 @@
+ SELECT a.train_id,
+    a.nominal_odc,
+    a.type,
+    a.entraning_station,
+    a.place,
+	a.loading_time,
+	a.place::interval + loading_time::interval AS start_time,
+	a.place::interval + loading_time::interval-'00:00:00'::interval AS days,
+    a.detraining_station,
+    a.consignment,
+    b.speed,
+    c.capacity AS d_capacity,
+    d.priority,
+    e.dist AS distance,
+    a.place::interval + loading_time::interval + '01:00:00'::interval * (e.dist / b.speed::double precision) AS arrival_time,
+    '01:00:00'::interval * (e.dist / b.speed::double precision) AS travel_time,
+    a.place::interval + loading_time::interval + '01:00:00'::interval * (e.dist / b.speed::double precision) + '10:00:00'::interval AS loading_time
+   FROM trains a
+     JOIN mst_speed b ON a.nominal_odc::bpchar = b.odc AND a.type::bpchar = b.type
+     JOIN mst_capacity c ON a.detraining_station::text = c.station::text
+     JOIN mst_priority d ON a.consignment::bpchar = d.type
+     JOIN mst_distance e ON a.entraning_station::text = e.src::text AND a.detraining_station::text = e.dest::text;
