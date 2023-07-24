@@ -1,4 +1,5 @@
- SELECT a.train_id,
+---------------------------------------------------------------------------------------21-07-2023----------------------------------------------
+SELECT a.train_id,
     a.nominal_odc,
     a.type,
     a.entraning_station,
@@ -15,6 +16,101 @@
     a.place::interval + loading_time::interval + '01:00:00'::interval * (e.dist / b.speed::double precision) AS arrival_time,
     '01:00:00'::interval * (e.dist / b.speed::double precision) AS travel_time,
     a.place::interval + loading_time::interval + '01:00:00'::interval * (e.dist / b.speed::double precision) + '10:00:00'::interval AS loading_time
+   FROM trains a
+     JOIN mst_speed b ON a.nominal_odc::bpchar = b.odc AND a.type::bpchar = b.type
+     JOIN mst_capacity c ON a.detraining_station::text = c.station::text
+     JOIN mst_priority d ON a.consignment::bpchar = d.type
+     JOIN mst_distance e ON a.entraning_station::text = e.src::text AND a.detraining_station::text = e.dest::text;
+
+---------------------------------------------------------------------------------------23-07-2023-----------------------------------------------------------
+
+
+ SELECT a.train_id,
+    a.nominal_odc,
+    a.type,
+    a.entraning_station,
+    a.place,
+
+-------------------------------------------------E-loading_time---------------------------------------------------------
+-- 	a.loading_time,
+	 CASE
+        WHEN EXTRACT(MINUTE FROM a.loading_time) >= 10 THEN
+            DATE_TRUNC('hour', a.loading_time) + INTERVAL '1 hour'
+        ELSE
+            DATE_TRUNC('hour', a.loading_time)
+    END AS E_loading_time,
+----------------------------------------------------------------------------------------------------------------------	
+
+	
+	
+-------------------------------------------------start_time---------------------------------------------------------
+-- 	a.place::interval + loading_time::interval AS start_time,
+     CASE
+        WHEN EXTRACT(MINUTE FROM a.place::interval + loading_time::interval) >= 10 THEN
+            DATE_TRUNC('hour', a.place::interval + loading_time::interval) + INTERVAL '1 hour'
+        ELSE
+            DATE_TRUNC('hour', a.place::interval + loading_time::interval)
+    END AS rounded_start_time,
+----------------------------------------------------------------------------------------------------------------------	
+	a.place::interval + loading_time::interval-'00:00:00'::interval AS days,
+    a.detraining_station,
+    a.consignment,
+    b.speed,
+    c.capacity AS d_capacity,
+    d.priority,
+    e.dist AS distance,
+	
+-------------------------------------------------arrival_time---------------------------------------------------------
+         CASE
+        WHEN EXTRACT(MINUTE FROM a.place::interval + loading_time::interval) >= 10 THEN
+            DATE_TRUNC('hour', a.place::interval + loading_time::interval) + INTERVAL '1 hour'
+        ELSE
+            DATE_TRUNC('hour', a.place::interval + loading_time::interval) end +       
+			CASE
+        WHEN EXTRACT(MINUTE FROM '01:00:00'::interval * (e.dist / b.speed::double precision))>= 10 THEN
+            DATE_TRUNC('hour', '01:00:00'::interval * (e.dist / b.speed::double precision))  + INTERVAL '1 hour'
+        ELSE
+            DATE_TRUNC('hour', '01:00:00'::interval * (e.dist / b.speed::double precision) )
+     + '01:00:00'::interval * (e.dist / b.speed::double precision)  end AS arrival_time,
+			
+-------------------------------------------------------------------------------------------------------------------------------			
+--     '01:00:00'::interval * (e.dist / b.speed::double precision) AS travel_time,
+
+
+-------------------------------------------------travel_time---------------------------------------------------------
+    CASE
+        WHEN EXTRACT(MINUTE FROM '01:00:00'::interval * (e.dist / b.speed::double precision)) >= 10 THEN 
+            DATE_TRUNC('hour', '01:00:00'::interval * (e.dist / b.speed::double precision)) + INTERVAL '1 hour'
+        ELSE
+            DATE_TRUNC('hour', '01:00:00'::interval * (e.dist / b.speed::double precision))
+    END AS rounded_travel_time,
+----------------------------------------------------------------------------------------------------------------------
+
+-------------------------------------------------d-loading_time---------------------------------------------------------			   
+    
+-- 	a.place::interval + loading_time::interval + '01:00:00'::interval * (e.dist / b.speed::double precision) + '10:00:00'::interval AS loading_time,
+  
+  
+  CASE
+        WHEN EXTRACT(MINUTE FROM a.place::interval + loading_time::interval) >= 10 THEN
+            DATE_TRUNC('hour', a.place::interval + loading_time::interval) + INTERVAL '1 hour'
+        ELSE
+            DATE_TRUNC('hour', a.place::interval + loading_time::interval)
+    END+    CASE
+        WHEN EXTRACT(MINUTE FROM '01:00:00'::interval * (e.dist / b.speed::double precision)) >= 10 THEN 
+            DATE_TRUNC('hour', '01:00:00'::interval * (e.dist / b.speed::double precision)) + INTERVAL '1 hour'
+        ELSE
+            DATE_TRUNC('hour', '01:00:00'::interval * (e.dist / b.speed::double precision))
+    END+ '10:00:00'::interval AS d_loading_time
+	
+	
+	
+	
+	
+	
+----------------------------------------------------------------------------------------------------------------------	
+	
+	
    FROM trains a
      JOIN mst_speed b ON a.nominal_odc::bpchar = b.odc AND a.type::bpchar = b.type
      JOIN mst_capacity c ON a.detraining_station::text = c.station::text
