@@ -1,0 +1,5 @@
+    floor(EXTRACT(epoch FROM
+        CASE
+            WHEN date_part('minute'::text, a.e_loading + '01:00:00'::interval * (e.dist / b.speed::double precision)) >= 30::double precision THEN date_trunc('hour'::text, a.e_loading + '01:00:00'::interval * (e.dist / b.speed::double precision)) + '01:00:00'::interval
+            ELSE date_trunc('hour'::text, a.e_loading + '01:00:00'::interval * (e.dist / b.speed::double precision))
+        END - a.date0) / 3600::numeric) AS res
