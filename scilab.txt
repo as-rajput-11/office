@@ -27,3 +27,46 @@ public class MainController {
         return "redirect:/"; // Redirect back to the home page
     }
 }
+
+
+#####################################################################################
+package com.example.ex2;
+
+import org.scilab.modules.types.*;
+import org.scilab.modules.javasci.Scilab;
+import org.scilab.modules.javasci.JavasciException;
+
+public class Filtering {
+    public static void main(String[] args) throws JavasciException, InterruptedException {
+        Scilab sci = new Scilab();
+        sci.open();
+	
+        // Introduce a delay to allow Scilab to start
+        Thread.sleep(2000); // 2000 milliseconds (2 seconds) delay
+
+        sci.exec("disp('hello')"); // Attempt to execute command in Scilab
+        
+        // Continue with the code regardless of whether Scilab was started successfully
+        sci.exec("disp('Basic tools for Signal Processing')");
+        
+        
+        
+        sci.exec("disp('gyandeep')");
+        sci.close();
+    }   
+}
+########################################index########################################################
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Input Form</title>
+</head>
+<body>
+    <form action="/submit" method="post">
+        <input type="text" name="inputText" placeholder="Enter text">
+        <button type="submit">Submit</button>
+    </form>
+</body>
+</html>
+
