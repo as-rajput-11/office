@@ -1,0 +1,29 @@
+package com.example.ex2;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.scilab.modules.javasci.JavasciException;
+import org.scilab.modules.javasci.Scilab;
+
+@Controller
+public class MainController {
+
+    @PostMapping("/submit")
+    public String handleSubmitForm(@RequestParam("inputText") String inputText) {
+    	
+        try {
+            Scilab sci = new Scilab();
+            sci.open();
+            Thread.sleep(2000);
+            sci.exec("disp('hello')");
+//            System.out.println("Received input kl: " + g);// 2000 milliseconds (2 seconds) delay
+//            sci.exec(inputText);
+            sci.close();
+        } catch (JavasciException | InterruptedException e) {
+            e.printStackTrace();
+            // Handle exception if needed
+        }
+
+        return "redirect:/"; // Redirect back to the home page
+    }
+}
