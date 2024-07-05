@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PLC Data Monitor</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            setInterval(function() {
+                $.getJSON('/data', function(data) {
+                    $('#temperature').text('Temperature: ' + data.temperature);
+                    $('#fan_status').text('Fan Status: ' + (data.fan_status ? 'On' : 'Off'));
+                    $('#coil_status').text('Coil Status: ' + data.coil_status);
+                });
+            }, 2000); // Update every 2 seconds
+        });
+
+        function toggleCoil(coil_id) {
+            $.post('/control', {'coil_id': coil_id, 'action': 'toggle'}, function(data) {
+                if (data.status === 'success') {
+                    console.log(`Coil ${data.coil_id} toggled successfully.`);
+                } else {
+                    console.error('Failed to toggle coil:', data.message);
+                }
+            });
+        }
+    </script>
+</head>
+<body>
+    <h1>PLC Data Monitor</h1>
+    <div id="temperature">Temperature: </div>
+    <div id="fan_status">Fan Status: </div>
+    <div id="coil_status">Coil Status: </div>
+
+    <div id="control">
+        <button onclick="toggleCoil(2)">Toggle Coil 2</button>
+    </div>
+</body>
+</html>
