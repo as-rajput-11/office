@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MAP</title>
+  <link rel="stylesheet" href="..//static/css/ol.css" />
+
+  <style>
+    /* Existing Styles */
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      color: #333;
+      padding: 20px;
+    }
+
+    #map {
+      height: 75vh;
+      width: 100%;
+      border: 2px solid #ddd;
+      margin-bottom: 20px;
+    }
+
+    .size_fix {
+      text-align: center;
+      padding: 15px;
+      display: block;
+      margin-bottom: 20px;
+    }
+
+    .size_fix label {
+      font-size: 16px;
+      font-weight: bold;
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    .size_fix textarea,
+    .size_fix select {
+      width: 80%;
+      padding: 10px;
+      margin-top: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+      resize: vertical;
+    }
+
+    button#start-btn,
+    button#stop-btn {
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 4px;
+      margin-top: 15px;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    #start-btn {
+      background-color: #007bff;
+    }
+
+    #stop-btn {
+      background-color: #dc3545;
+      margin-top: 10px;
+    }
+
+    select {
+      width: 82%;
+      padding: 10px;
+      margin-top: 8px;
+      font-size: 14px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+
+    .hero {
+      background-color: #ffffff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .hero form {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .hero textarea {
+      height: 100px;
+      resize: vertical;
+    }
+
+    .container-fluid {
+      margin-top: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .size_fix {
+        text-align: left;
+      }
+
+      select,
+      textarea {
+        width: 100%;
+      }
+
+      button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Map container -->
+  <div class="web">
+    <div id="map"></div>
+  </div>
+
+  <!-- Crime Report Form -->
+  <section class="container-fluid">
+    <div class="row size_fix">
+      <div class="hero">
+        <form>
+          <label id="location">Location: </label>
+          <textarea id="inputText" placeholder="Enter the location here..."></textarea>
+          <div class="row">
+            <select id="language">
+              <option value="en">Indian Lang - (English)</option>
+              <option value="hi">Indian Lang - (Hindi)</option>
+              <option value="gu">Indian Lang - (Gujarati)</option>
+            </select>
+            <button id="start-btn" type="button">Start Recognition</button>
+            <button id="stop-btn" type="button">Stop Recognition</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="row size_fix">
+      <label for="Crime">Title of Crime: </label>
+      <select name="Crime" id="Crime">
+        <option value="murder">Murder</option>
+        <option value="robbery">Robbery</option>
+        <option value="fraud">Fraud</option>
+        <option value="theft">Theft</option>
+        <option value="assault">Assault</option>
+      </select>
+    </div>
+
+    <div class="row size_fix">
+      <label for="Description">Description: </label>
+      <textarea id="Description" placeholder="Provide details about the crime..."></textarea>
+    </div>
+  </section>
+
+  <script src="https://cdn.jsdelivr.net/npm/ol@latest/dist/ol.js"></script>
+  <script src="..//static/js/mainnew.js"></script>
+
+  <script>
+    var recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+
+    var currentInput = 'location';
+
+    var cities = {
+      'en': ['ahmedabad', 'vadodara', 'gandhinagar', 'kota', 'surat'],
+      'hi': ['अहमदाबाद', 'वडोदरा', 'गांधीनगर', 'कोटा', 'सूरत'],
+      'gu': ['અમદાવાદ', 'વડોદરા', 'ગાંધીનગર', 'કોટા', 'સુરત']
+    };
+
+    var cities_location = {
+      'en': {
+        'ahmedabad': [22.993527, 72.579709],
+        'vadodara': [22.292048, 73.190205],
+        'gandhinagar': [23.210251, 72.651379],
+        'kota': [25.178150, 75.850377],
+        'surat': [21.168869, 72.828875]
+      },
+      'hi': {
+        'अहमदाबाद': [22.993527, 72.579709],
+        'वडोदरा': [22.292048, 73.190205],
+        'गांधीनगर': [23.210251, 72.651379],
+        'कोटा': [25.178150, 75.850377],
+        'सूरत': [21.168869, 72.828875]
+      },
+      'gu': {
+        'અમદાવાદ': [22.993527, 72.579709],
+        'વડોદરા': [22.292048, 73.190205],
+        'ગાંધીનગર': [23.210251, 72.651379],
+        'કોટા': [25.178150, 75.850377],
+        'સુરત': [21.168869, 72.828875]
+      }
+    };
+
+    var crimeOptions = {
+      'en': ['murder', 'robbery', 'fraud', 'assault'],
+      'hi': ['हत्या', 'डकैती', 'धोखाधड़ी', 'हमला'],
+      'gu': ['હત્યારૂપ', 'ચોરી', 'ઠગાઈ', 'હમલો']
+    };
+
+    // Update crime options based on language
+    document.getElementById("language").addEventListener("change", function () {
+      var selectedLang = document.getElementById("language").value;
+      updateCrimeOptions(selectedLang);
+      recognition.lang = selectedLang === 'hi' ? 'hi-IN' : selectedLang === 'gu' ? 'gu-IN' : 'en-IN';
+    });
+
+    function updateCrimeOptions(language) {
+      var crimeSelect = document.getElementById("Crime");
+      crimeSelect.innerHTML = ''; // Clear current options
+
+      var options = crimeOptions[language];
+      options.forEach(function (crime) {
+        var option = document.createElement("option");
+        option.value = crime.toLowerCase();
+        option.textContent = crime;
+        crimeSelect.appendChild(option);
+      });
+    }
+
+    document.getElementById('start-btn').addEventListener('click', function () {
+      recognition.start();
+      console.log('Speech recognition started...');
+    });
+
+    document.getElementById('stop-btn').addEventListener('click', function () {
+      recognition.stop();
+      console.log('Speech recognition stopped...');
+    });
+
+    recognition.onresult = function (event) {
+      var transcript = '';
+      for (var i = event.resultIndex; i < event.results.length; i++) {
+        transcript += event.results[i][0].transcript;
+      }
+
+      console.log("Recognized speech: " + transcript);
+
+      if (currentInput === 'location') {
+        var matchedCity = cities[document.getElementById("language").value].find(city => transcript.toLowerCase().includes(city));
+        if (matchedCity) {
+          document.getElementById('inputText').value = matchedCity.charAt(0).toUpperCase() + matchedCity.slice(1); // Capitalize first letter
+          console.log("City recognized: " + matchedCity);
+          currentInput = 'crime';
+          console.log("Now listening for crime title...");
+        } else {
+          console.log("Could not match any city.");
+        }
+      } else if (currentInput === 'crime') {
+        var selectedCrime = crimeOptions[document.getElementById("language").value].find(option => transcript.toLowerCase().includes(option));
+        if (selectedCrime) {
+          document.getElementById('Crime').value = selectedCrime;
+          currentInput = 'description';
+          console.log("Now listening for description...");
+        } else {
+          console.log("Could not match crime title. Please say a valid crime.");
+        }
+      } else if (currentInput === 'description') {
+        if (transcript.toLowerCase().trim() === "finish" || transcript.toLowerCase().trim() === "stop" || transcript.toLowerCase().trim() === "over") {
+          currentInput = 'location';
+          recognition.stop();
+          console.log("Description completed.");
+        } else {
+          document.getElementById('Description').value = transcript;
+          console.log("Description received.");
+        }
+      }
+    };
+
+    recognition.onerror = function (event) {
+      console.log('Speech recognition error: ' + event.error);
+    };
+
+    // Initialize with default language (English)
+    updateCrimeOptions('en');
+
+    var map = new ol.Map({
+      target: 'map',
+      layers: [
+        new ol.layer.Tile({
+          source: new ol.source.OSM(),
+        }),
+      ],
+      view: new ol.View({
+        center: [0, 0],
+        zoom: 2,
+      }),
+    });
+
+    function zoomToLocation(latitude, longitude) {
+      map.getView().setCenter([longitude, latitude]);
+      map.getView().setZoom(13);
+    }
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(function (position) {
+        var coords = position.coords;
+        var userLocation = ol.proj.fromLonLat([coords.longitude, coords.latitude]);
+        var userMarker = new ol.Feature({
+          geometry: new ol.geom.Point(userLocation),
+        });
+        var vectorLayer = new ol.layer.Vector({
+          source: new ol.source.Vector({
+            features: [userMarker],
+          }),
+          style: new ol.style.Style({
+            image: new ol.style.Icon({
+              src: '..//static/image/location.svg',
+              width: 28,
+              height: 28,
+            })
+          })
+        });
+        map.addLayer(vectorLayer);
+        map.getView().setCenter(userLocation);
+        map.getView().setZoom(14);
+      }, function(error) {
+        alert('Geolocation failed: ' + error.message);
+      });
+    } else {
+      alert('Geolocation is not supported by this browser.');
+    }
+  </script>
+</body>
+
+</html>
