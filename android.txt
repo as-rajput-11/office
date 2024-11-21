@@ -1,0 +1,198 @@
+package com.example.myapplication;
+
+import android.annotation.SuppressLint;
+import android.os.Bundle;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import android.content.Intent;
+import android.speech.RecognizerIntent;
+import android.speech.tts.TextToSpeech;
+import android.widget.Button;
+import android.widget.TextView;
+
+import java.util.ArrayList;
+import java.util.Locale;
+
+public class MainActivity extends AppCompatActivity {
+    private static final int REQ_CODE_SPEECH_INPUT = 100;
+    private TextToSpeech textToSpeech;
+    private TextView questionTextView, resultTextView;
+
+    private String selectedLanguage = "en"; // Default language is English
+    private Locale speechLocale = Locale.US; // Default locale for Speech Recognition
+    private int currentQuestionIndex = 0;
+
+    private final String[][] questions = {
+            {"Select your language: English, Hindi, Gujarati.",
+                    "अपनी भाषा चुनें: अंग्रेजी, हिंदी, गुजराती।",
+                    "તમારી ભાષા પસંદ કરો: અંગ્રેજી, હિન્દી, ગુજરાતી।"},
+            {"Enter your location: Ahmedabad, Gandhinagar, Surat.",
+                    "अपना स्थान दर्ज करें: अहमदाबाद, गांधीनगर, सूरत।",
+                    "તમારું સ્થળ દાખલ કરો: અમદાવાદ, ગાંધીનગર, સુરત।"},
+            {"What is your crime? Murder, Robbery, Fraud.",
+                    "आपका अपराध क्या है? हत्या, डकैती, धोखाधड़ी।",
+                    "તમારો ગુનો શું છે? હત્યા, લૂંટ, છેતરપિંડી।"},
+            {"Describe your crime.",
+                    "अपने अपराध का वर्णन करें।",
+                    "તમારા ગુનાનો વર્ણન કરો."}
+    };
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        questionTextView = findViewById(R.id.questionTextView);
+        resultTextView = findViewById(R.id.resultTextView);
+        Button startSpeechButton = findViewById(R.id.startSpeechButton);
+
+        textToSpeech = new TextToSpeech(this, status -> {
+            if (status == TextToSpeech.SUCCESS) {
+                textToSpeech.setLanguage(Locale.US);
+            }
+        });
+
+        startSpeechButton.setOnClickListener(view -> askQuestion());
+    }
+
+    private void askQuestion() {
+        if (currentQuestionIndex < questions.length) {
+            String question = getLocalizedQuestion(currentQuestionIndex);
+            questionTextView.setText(question);
+            textToSpeech.setLanguage(speechLocale);
+            textToSpeech.speak(question, TextToSpeech.QUEUE_FLUSH, null, null);
+
+            Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+            intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+            intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, speechLocale.toString());
+            intent.putExtra(RecognizerIntent.EXTRA_PROMPT, getLocalizedMessage("Please respond.", "कृपया जवाब दें।", "કૃપા કરીને જવાબ આપો."));
+            startActivityForResult(intent, REQ_CODE_SPEECH_INPUT);
+        } else {
+            resultTextView.setText(getLocalizedMessage("All questions completed. Thank you!", "सभी प्रश्न समाप्त। धन्यवाद!", "તમારા બધા પ્રશ્નો પૂરા થયા. આભાર!"));
+        }
+    }
+
+    @SuppressLint("SetTextI18n")
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == REQ_CODE_SPEECH_INPUT && resultCode == RESULT_OK && data != null) {
+            ArrayList<String> result = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+            assert result != null;
+            String userAnswer = result.get(0); // Keep the original transcription as is
+
+            if (currentQuestionIndex == 0) {
+                handleLanguageSelection(userAnswer.toLowerCase());
+            } else {
+                resultTextView.setText(userAnswer); // Display the user's spoken response
+                currentQuestionIndex++;
+            }
+
+            // Delay before asking the next question
+            new android.os.Handler().postDelayed(this::askQuestion, 2000);
+        }
+    }
+
+    private void handleLanguageSelection(String userAnswer) {
+        if (userAnswer.contains("hindi") || userAnswer.contains("हिंदी")) {
+            selectedLanguage = "hi";
+            speechLocale = new Locale("hi", "IN");
+            resultTextView.setText("हिंदी चुनी गई।");
+        } else if (userAnswer.contains("gujarati") || userAnswer.contains("ગુજરાતી")) {
+            selectedLanguage = "gu";
+            speechLocale = new Locale("gu", "IN");
+            resultTextView.setText("ગુજરાતી પસંદ કરેલું.");
+        } else {
+            selectedLanguage = "en";
+            speechLocale = Locale.US;
+            resultTextView.setText("English selected.");
+        }
+        currentQuestionIndex++;
+    }
+
+    private String getLocalizedQuestion(int questionIndex) {
+        switch (selectedLanguage) {
+            case "hi":
+                return questions[questionIndex][1];
+            case "gu":
+                return questions[questionIndex][2];
+            default:
+                return questions[questionIndex][0];
+        }
+    }
+
+    private String getLocalizedMessage(String en, String hi, String gu) {
+        switch (selectedLanguage) {
+            case "hi":
+                return hi;
+            case "gu":
+                return gu;
+            default:
+                return en;
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (textToSpeech != null) {
+            textToSpeech.shutdown();
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+###############
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="16dp">
+    <TextView
+        android:id="@+id/questionTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="20sp"
+        android:text="@string/question_will_appear_here"
+        android:layout_marginBottom="16dp" />
+
+    <TextView
+        android:id="@+id/resultTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="18sp"
+        android:text="@string/result_will_appear_here"
+        android:layout_marginBottom="32dp" />
+
+    <Button
+        android:id="@+id/startSpeechButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/restart_quiz" />
+
+</LinearLayout>
+    }
+}
+
